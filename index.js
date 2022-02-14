@@ -6,6 +6,8 @@ const context = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+const scoreElement = document.getElementById('scoreElement');
+
 // Player Class
 class Player {
     constructor(x, y, radius, color) {
@@ -164,6 +166,8 @@ function animate() {
                     );
                 }
                 if(enemy.radius - 10 > 10) { 
+                    score += 100;
+                    scoreElement.innerHTML = score;
                     gsap.to(enemy, {
                         radius: enemy.radius - 10
                     })
@@ -171,6 +175,8 @@ function animate() {
                         projectiles.splice(projectileIndex, 1);
                     }, 0);
                 } else {
+                    score += 250;
+                    scoreElement.innerHTML = score;
                     setTimeout(() => {
                         enemies.splice(enemyIndex, 1);
                         projectiles.splice(projectileIndex, 1);
@@ -211,6 +217,7 @@ const player = new Player(x, y, 10, 'white');
 const projectiles = [];
 const friction = 0.99;
 const particles = [];
+let score = 0;
 
 // Array of Enemies
 const enemies = [];
