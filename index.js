@@ -7,6 +7,9 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const scoreElement = document.getElementById('scoreElement');
+const gameUiElement = document.getElementById('gameUiElement');
+const bigScoreElement = document.getElementById('bigScoreElement');
+const startGameButton = document.getElementById('startGameButton');
 
 // Player Class
 class Player {
@@ -145,6 +148,8 @@ function animate() {
         const distanceToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
         if(distanceToPlayer - enemy.radius - player.radius < 1) {
             cancelAnimationFrame(animationId);
+            gameUiElement.style.display = 'flex';
+            bigScoreElement.innerHTML = score;
         }
 
         // Projectile Collision
@@ -208,19 +213,28 @@ function spawnEnemies() {
     }, 1500);
 }
 
-// Init Player on Center Screen
+
+// Init Objects of Game
 const x = canvas.width/2;
 const y = canvas.height/2;
-const player = new Player(x, y, 10, 'white');
-
-// Array of Projectiles
-const projectiles = [];
 const friction = 0.99;
-const particles = [];
-let score = 0;
 
-// Array of Enemies
-const enemies = [];
+let animationId; 
+let score = 0;
+let player = new Player(x, y, 10, 'white');
+let projectiles = [];
+let particles = [];
+let enemies = [];
+
+function init() {
+    score = 0;
+    scoreElement.innerHTML = score;
+    bigScoreElement.innerHTML = score;
+    player = new Player(x, y, 10, 'white');
+    projectiles = [];
+    particles = [];
+    enemies = [];
+}
 
 // Event Click Shoot
 window.addEventListener('click', (event) => {
@@ -229,7 +243,10 @@ window.addEventListener('click', (event) => {
     projectiles.push(new Projectile(canvas.width/2, canvas.height/2, 5, 'white', velocity));
 })
 
-let animationId;
+startGameButton.addEventListener('click', () => {
+    gameUiElement.style.display = 'none';
+    init();
+    animate();
+    spawnEnemies();
+})
 
-animate();
-spawnEnemies();
