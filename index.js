@@ -74,11 +74,35 @@ class Enemy {
 
 // Animation
 function animate() {
-    requestAnimationFrame(animate);
+    animationId = requestAnimationFrame(animate);
+    
+    // Clear Canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
     player.draw();
+    
+    // Animate Projectiles
     projectiles.forEach((projectile) => projectile.update());
-    enemies.forEach((enemy) => enemy.update());
+    
+    // Animate Enemies
+    enemies.forEach((enemy, enemyIndex) => {
+        enemy.update();
+
+        // Player Collision - Game Over
+        const distanceToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+        if(distanceToPlayer - enemy.radius - player.radius < 1) {
+            cancelAnimationFrame(animationId);
+        }
+
+        // Projectile Collision
+        projectiles.forEach((projectile, projectileIndex) => {
+            const distanceToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+            if(distanceToProjectile - enemy.radius - projectile.radius < 1) {
+                enemies.splice(enemyIndex, 1);
+                projectiles.splice(projectileIndex, 1);
+            }
+
+        })
+    });
 }
 
 function spawnEnemies() {
@@ -118,6 +142,8 @@ window.addEventListener('click', (event) => {
     const velocity = {x: Math.cos(angle), y: Math.sin(angle)}
     projectiles.push(new Projectile(canvas.width/2, canvas.height/2, 5, 'red', velocity));
 })
+
+let animationId;
 
 animate();
 spawnEnemies();
