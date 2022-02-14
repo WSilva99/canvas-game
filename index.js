@@ -71,6 +71,35 @@ class Enemy {
     }
 }
 
+class Particle {
+    constructor(x, y, radius, color, velocity) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.velocity = velocity;
+        this.alpha = 1;
+    }
+
+    draw() {
+        context.save();
+        context.globalAlpha = this.alpha;
+        context.beginPath();
+        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        context.fillStyle = this.color;
+        context.fill();
+        context.restore();
+    }
+
+    update() {
+        this.draw();
+        this.velocity.x *= friction;
+        this.velocity.y *= friction;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.alpha -= 0.01;
+    }
+}
 
 // Animation
 function animate() {
@@ -80,6 +109,14 @@ function animate() {
     context.fillStyle = 'rgba(0, 0, 0, 0.1)';
     context.fillRect(0, 0, canvas.width, canvas.height);
     player.draw();
+
+    particles.forEach((particle, particleIndex) => {
+        if(particle.alpha <= 0) {
+            particles.splice(particleIndex, 1);
+        } else {
+            particle.update();
+        }
+    })
     
     // Animate Projectiles
     projectiles.forEach((projectile, projectileIndex) => {
@@ -112,10 +149,33 @@ function animate() {
         projectiles.forEach((projectile, projectileIndex) => {
             const distanceToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
             if(distanceToProjectile - enemy.radius - projectile.radius < 1) {
-                setTimeout(() => {
-                    enemies.splice(enemyIndex, 1);
-                    projectiles.splice(projectileIndex, 1);
-                }, 0);
+                for(let i = 0; i < enemy.radius * 2 ; i++) {
+                    particles.push(
+                        new Particle(
+                            projectile.x,
+                            projectile.y,
+                            Math.random() * 2,
+                            enemy.color,
+                            {
+                                x: Math.random() - 0.5 * Math.random() * 5,
+                                y: Math.random() - 0.5 * Math.random() * 5
+                            }
+                        )
+                    );
+                }
+                if(enemy.radius - 10 > 10) { 
+                    gsap.to(enemy, {
+                        radius: enemy.radius - 10
+                    })
+                    setTimeout(() => {
+                        projectiles.splice(projectileIndex, 1);
+                    }, 0);
+                } else {
+                    setTimeout(() => {
+                        enemies.splice(enemyIndex, 1);
+                        projectiles.splice(projectileIndex, 1);
+                    }, 0);
+                }
             }
 
         })
@@ -149,6 +209,8 @@ const player = new Player(x, y, 10, 'white');
 
 // Array of Projectiles
 const projectiles = [];
+const friction = 0.99;
+const particles = [];
 
 // Array of Enemies
 const enemies = [];
