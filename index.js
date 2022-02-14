@@ -77,11 +77,26 @@ function animate() {
     animationId = requestAnimationFrame(animate);
     
     // Clear Canvas
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
     player.draw();
     
     // Animate Projectiles
-    projectiles.forEach((projectile) => projectile.update());
+    projectiles.forEach((projectile, projectileIndex) => {
+        projectile.update();
+
+        // Remove When Screen Out
+        if(
+            projectile.x + projectile.radius < 0 ||
+            projectile.x - projectile.radius > canvas.width ||
+            projectile.y + projectile.radius < 0 ||
+            projectile.y - projectile.radius > canvas.height
+        ) {
+            setTimeout(() => {
+                projectiles.splice(projectileIndex, 1);
+            }, 0)
+        }
+    });
     
     // Animate Enemies
     enemies.forEach((enemy, enemyIndex) => {
@@ -97,8 +112,10 @@ function animate() {
         projectiles.forEach((projectile, projectileIndex) => {
             const distanceToProjectile = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
             if(distanceToProjectile - enemy.radius - projectile.radius < 1) {
-                enemies.splice(enemyIndex, 1);
-                projectiles.splice(projectileIndex, 1);
+                setTimeout(() => {
+                    enemies.splice(enemyIndex, 1);
+                    projectiles.splice(projectileIndex, 1);
+                }, 0);
             }
 
         })
@@ -107,7 +124,7 @@ function animate() {
 
 function spawnEnemies() {
     setInterval(() => {
-        const color = 'green';
+        const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
         const radius = Math.random() * (30 - 10) + 10;
         let x, y;
 
@@ -128,7 +145,7 @@ function spawnEnemies() {
 // Init Player on Center Screen
 const x = canvas.width/2;
 const y = canvas.height/2;
-const player = new Player(x, y, 30, 'blue');
+const player = new Player(x, y, 10, 'white');
 
 // Array of Projectiles
 const projectiles = [];
@@ -139,8 +156,8 @@ const enemies = [];
 // Event Click Shoot
 window.addEventListener('click', (event) => {
     const angle = Math.atan2(event.clientY - canvas.height/2, event.clientX - canvas.width/2);
-    const velocity = {x: Math.cos(angle), y: Math.sin(angle)}
-    projectiles.push(new Projectile(canvas.width/2, canvas.height/2, 5, 'red', velocity));
+    const velocity = {x: Math.cos(angle) * 5, y: Math.sin(angle) * 5}
+    projectiles.push(new Projectile(canvas.width/2, canvas.height/2, 5, 'white', velocity));
 })
 
 let animationId;
