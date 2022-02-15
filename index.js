@@ -1,88 +1,22 @@
-// Init Canvas
-const canvas = document.querySelector('canvas');
-const context = canvas.getContext('2d');
-
-// Full Screen Canvas
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
+// Init Elements
 const scoreElement = document.getElementById('scoreElement');
 const gameUiElement = document.getElementById('gameUiElement');
 const bigScoreElement = document.getElementById('bigScoreElement');
 const startGameButton = document.getElementById('startGameButton');
 
-// Player Class
-class Player {
+const canvas = document.querySelector('canvas');
+const context = canvas.getContext('2d');
+// Full Screen Canvas
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+class Circle { // Base class for all game elements
     constructor(x, y, radius, color) {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.color = color;
-    }
-
-    // Function to Draw Player on Canvas
-    draw() {
-        context.beginPath();
-        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        context.fillStyle = this.color;
-        context.fill();
-    }
-}
-
-// Projectile Class
-class Projectile {
-    constructor(x, y, radius, color, velocity) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.velocity = velocity;
-    }
-
-    draw() {
-        context.beginPath();
-        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        context.fillStyle = this.color;
-        context.fill();
-    }
-
-    update() {
-        this.draw();
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-    }
-}
-
-class Enemy {
-    constructor(x, y, radius, color, velocity) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.velocity = velocity;
-    }
-
-    draw() {
-        context.beginPath();
-        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        context.fillStyle = this.color;
-        context.fill();
-    }
-
-    update() {
-        this.draw();
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-    }
-}
-
-class Particle {
-    constructor(x, y, radius, color, velocity) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.velocity = velocity;
         this.alpha = 1;
     }
 
@@ -98,12 +32,76 @@ class Particle {
 
     update() {
         this.draw();
-        this.velocity.x *= friction;
-        this.velocity.y *= friction;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+    }
+}
+
+class Player extends Circle { // Overwrite update()
+    constructor(x, y, radius, color) {
+        super(x, y, radius, color);
+    }
+
+    update() {
+        this.draw();
+    }
+}
+
+class Projectile extends Circle { // Add velocity attribute
+    constructor(x, y, radius, color, velocity) {
+        super(x, y, radius, color);
+        this.velocity = velocity;
+    }
+}
+
+class Enemy extends Circle { // Add velocity attribute
+    constructor(x, y, radius, color, velocity) {
+        super(x, y, radius, color);
+        this.velocity = velocity;
+    }
+}
+
+class Particle extends Circle { // Add velocity attribute and Overwrite update
+    constructor(x, y, radius, color, velocity) {
+        super(x, y, radius, color);
+        this.velocity = velocity;
+    }
+    
+    update() {
+        this.draw();
+        this.velocity.x *= Math.random() * (0.99 - 0.96) + 0.96;
+        this.velocity.y *= Math.random() * (0.99 - 0.96) + 0.96;
         this.x += this.velocity.x;
         this.y += this.velocity.y;
         this.alpha -= 0.01;
     }
+}
+
+function calculateVelocity(x0, x1, y0, y1, increment = 1) {
+    const angle = Math.atan2(y1 - y0, x1 - x0);
+    return {
+        x: Math.cos(angle) * increment,
+        y: Math.sin(angle) * increment
+    }
+}
+
+function spawnEnemies() {
+    setInterval(() => {
+        const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+        const radius = Math.random() * (30 - 10) + 10;
+        let x, y;
+
+        if(Math.random() < 0.5) {
+            x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
+            y = Math.random() * canvas.height;
+        } else {
+            x = Math.random() * canvas.width;
+            y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
+        }
+
+        const velocity = calculateVelocity(x, canvas.width/2, y, canvas.height/2);
+        enemies.push(new Enemy(x, y, radius, color, velocity));
+    }, 1500);
 }
 
 // Animation
@@ -193,38 +191,20 @@ function animate() {
     });
 }
 
-function spawnEnemies() {
-    setInterval(() => {
-        const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
-        const radius = Math.random() * (30 - 10) + 10;
-        let x, y;
 
-        if(Math.random() < 0.5) {
-            x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
-            y = Math.random() * canvas.height;
-        } else {
-            x = Math.random() * canvas.width;
-            y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
-        }
-
-        const angle = Math.atan2(canvas.height/2 - y, canvas.width/2 - x);
-        const velocity = {x: Math.cos(angle), y: Math.sin(angle)}
-        enemies.push(new Enemy(x, y, radius, color, velocity));
-    }, 1500);
-}
 
 
 // Init Objects of Game
 const x = canvas.width/2;
 const y = canvas.height/2;
-const friction = 0.99;
+const friction = 0.97;
 
 let animationId; 
-let score = 0;
-let player = new Player(x, y, 10, 'white');
-let projectiles = [];
-let particles = [];
-let enemies = [];
+let score;
+let player;
+let projectiles;
+let particles;
+let enemies;
 
 function init() {
     score = 0;
@@ -237,9 +217,8 @@ function init() {
 }
 
 // Event Click Shoot
-window.addEventListener('click', (event) => {
-    const angle = Math.atan2(event.clientY - canvas.height/2, event.clientX - canvas.width/2);
-    const velocity = {x: Math.cos(angle) * 5, y: Math.sin(angle) * 5}
+canvas.addEventListener('click', (event) => {
+    const velocity = calculateVelocity(canvas.width/2, event.clientX, canvas.height/2, event.clientY, 5);
     projectiles.push(new Projectile(canvas.width/2, canvas.height/2, 5, 'white', velocity));
 })
 
