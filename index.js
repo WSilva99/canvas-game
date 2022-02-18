@@ -145,6 +145,7 @@ function animate() {
         // Player Collision - Game Over
         const distanceToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
         if(distanceToPlayer - enemy.radius - player.radius < 1) {
+            new Audio('./game-over.wav').play();
             cancelAnimationFrame(animationId);
             gameUiElement.style.display = 'flex';
             bigScoreElement.innerHTML = score;
@@ -185,6 +186,7 @@ function animate() {
                         projectiles.splice(projectileIndex, 1);
                     }, 0);
                 }
+                new Audio('./explosion-8-bit.wav').play();
             }
 
         })
@@ -220,6 +222,7 @@ function init() {
 canvas.addEventListener('click', (event) => {
     const velocity = calculateVelocity(canvas.width/2, event.clientX, canvas.height/2, event.clientY, 5);
     projectiles.push(new Projectile(canvas.width/2, canvas.height/2, 5, 'white', velocity));
+    new Audio('./laser-8-bit.wav').play();
 })
 
 startGameButton.addEventListener('click', () => {
