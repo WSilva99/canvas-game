@@ -99,7 +99,7 @@ function spawnEnemies() {
             y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
         }
 
-        const velocity = calculateVelocity(x, canvas.width/2, y, canvas.height/2);
+        const velocity = calculateVelocity(x, canvas.width/2, y, canvas.height/2, Math.random() * (3 - 1) + 1);
         enemies.push(new Enemy(x, y, radius, color, velocity));
     }, 1500);
 }
